@@ -2,7 +2,7 @@
  * RDDL: Defines methods to statically validate an RDDL specification.
  *       Currently unimplemented so relying on runtime EvalExceptions to
  *       detect errors.
- * 
+ *
  * @author Scott Sanner (ssanner@gmail.com)
  * @version 10/10/10
  *
@@ -25,12 +25,12 @@ import rddl.viz.StateViz;
 public class DynamicValidator {
 
 	// Note when objects are referenced but not declared in object lists
-	
+
 	// Validates a domain and arbitrary first instance by simulating one iteration with a NOOP -- undefined
-	// references will be caught although it should be pointed out that a dynamic simulation does not 
+	// references will be caught although it should be pointed out that a dynamic simulation does not
 	// necessarily evaluate all conditional paths or states so this is more of a reality check.
 	public static void main(String[] args) throws Exception {
-		
+
 		if (args.length < 1 || args.length > 2) {
 			System.out.println("usage: RDDL-file-or-dir [instance-name]");
 			System.exit(1);
@@ -38,7 +38,7 @@ public class DynamicValidator {
 		String rddl_file = args[0];
 		int rand_seed_sim = 123456;
 		int rand_seed_policy = 123456;
-		
+
 		// Load RDDL files
 		RDDL rddl = new RDDL(rddl_file);
 
@@ -50,10 +50,10 @@ public class DynamicValidator {
 		pol.setRDDL(rddl);
 		//StateViz viz = new NullScreenDisplay();
 		StateViz viz = new GenericScreenDisplay();
-			
+
 		// Attempt to simulate one step... this will throw an exception if anything is undefined
 		sim._i._nHorizon = 2;
-		Result r = sim.run(pol, viz, rand_seed_sim);
+		Result r = sim.run(pol, viz, rand_seed_sim,1);
 
 		// Show all variable names in use
 		if (RDDL.DEBUG_PVAR_NAMES)
