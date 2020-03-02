@@ -36,10 +36,12 @@ public class Simulator {
 
 	public boolean started = false;
 	public FileWriter fw;
+	public StringBuilder sb;
+	public boolean pomdp;
 
 	public Simulator(RDDL rddl, String instance_name) throws Exception {
 		_state = new State();
-
+		this.pomdp = instance_name.contains("pomdp");
 		// Set up instance, nonfluent, and domain information
 		_i = rddl._tmInstanceNodes.get(instance_name);
 		if (_i == null)
@@ -106,7 +108,7 @@ public class Simulator {
 			_state.computeNextState(action_list, _rand);
 
 			// Display state/observations that the agent sees
-			v.display(_state, t);
+			//v.display(_state, t);
 
 			// Calculate reward / objective and store
 			double reward = RDDL.ConvertToNumber(
@@ -138,26 +140,34 @@ public class Simulator {
 
 		try {
 		  File outFile = new File(fileName);
-			String output = "\n";
 		  if (!outFile.exists()) {
 				outFile.createNewFile();
-				output = "";
+				this.sb = new StringBuilder("");
 				this.fw = new FileWriter(fileName, true);
 		  } else if (!this.started) {
 				outFile.delete();
 				outFile.createNewFile();
-				output = "";
+				this.sb = new StringBuilder("");
 				this.fw = new FileWriter(fileName, true);
-		  }
+		  } else {
+				this.sb.append("\n");
+			}
 			this.started = true;
-			output = output + trial + "\t";
+			this.sb.append(trial + "\t");
 			for (int i=0; i<states.size(); i++){
 				String stateStr = getStateDescription(states.get(i));
-		  	output = output + stateStr + "\t" + rewards.get(i) + "\t";
+				if (i < states.size()-1){
+		  		this.sb.append(stateStr + rewards.get(i) + "\t");
+				} else {
+					this.sb.append(stateStr + rewards.get(i));
+				}
 			}
-			output = output.substring(0,output.length()-1);
-		  this.fw.write(output);
-		  //System.out.println("Written to file -> " + output);
+			//this.sb.setLength(this.sb.length() - 1);
+			if (trial%1000==0) {
+				System.out.println("trial:\t"+trial);
+				this.fw.write(this.sb.toString());
+				this.sb = new StringBuilder("");
+			}
 		} catch (IOException ioe) {
 		  System.out.println("IOException occurred - " + ioe.getMessage());
 		}
@@ -181,32 +191,34 @@ public class Simulator {
 					continue;
 				String var_type = e.getKey();
 				var_type = var_type.replace("interm", "derived");
-				int f = 0;
+				if (var_type.equals("nonfluent") || (this.pomdp && var_type.equals("states"))) continue;
 		  	try {
 		  	    // Go through all term groundings for variable p
 		  	    ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
-
+						// System.out.println("\n- " + var_type + ": " + p);
 		  	    for (ArrayList<LCONST> gfluent : gfluents){
-							// System.out.println("s.getPVariableAssign(p, gfluent):\t"+s.getPVariableAssign(p, gfluent));
 							// System.out.println("type:\t"+s.getPVariableAssign(p, gfluent).getClass());
 							if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
-								sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "0\t" : "1\t"));
+								sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
+								// System.out.println(s.getPVariableAssign(p, gfluent));
 							} else {
 								sb.append(s.getPVariableAssign(p, gfluent));
 								sb.append("\t");
+								// System.out.println(s.getPVariableAssign(p, gfluent));
 							}
 						}
 						if (s._hmPVariables.get(obs) != null) {
 				  		for (ArrayList<LCONST> gfluent : gfluents){
 								if ((s.getPVariableAssign(obs, gfluent) instanceof Boolean)){
-									sb.append(((Boolean)s.getPVariableAssign(obs, gfluent) ? "0\t" : "1\t"));
+									sb.append(((Boolean)s.getPVariableAssign(obs, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(obs, gfluent));
 								} else {
 									sb.append(s.getPVariableAssign(obs, gfluent));
 									sb.append("\t");
+									// System.out.println(s.getPVariableAssign(obs, gfluent));
 								}
 							}
 	  	    	}
-
 		  	} catch (EvalException ex) {
 		  	    System.out.println("- could not retrieve assignment for " + p + "/" + obs + "\n");
 		  	}
@@ -239,7 +251,6 @@ public class Simulator {
 		Simulator sim = new Simulator(rddl, instance_name);
 
 		for (int i=1; i<trials+1; i++){
-			if (i%100==0) System.out.println("trial:\t"+i);
 			// Initialize simulator, policy and state visualization
 			int rand_seed_sim = (int)System.currentTimeMillis(); // 123456
 			int rand_seed_policy = (int)System.currentTimeMillis(); // 123456
@@ -252,7 +263,6 @@ public class Simulator {
 
 			// Reset, pass a policy, a visualization interface, a random seed, and simulate!
 			Result r = sim.run(pol, viz, rand_seed_sim, i);
-			//System.out.println("==> " + r);
 		}
 		sim.fw.close();
 	}

@@ -168,7 +168,7 @@ Examples
 		./run rddl.sim.Simulator files/rddl2/examples/power_gen.rddl2 rddl.policy.RandomConcurrentPolicy inst_power_gen rddl.viz.GenericScreenDisplay 1 1
 
 	    **RDDL2 DBN / Influence Diagram Visualization**
-		
+		************ need to uninstall new version of graphviz first:	conda uninstall graphviz
 		./run rddl.viz.RDDL2Graph files/rddl2/examples/lang_extension_examples.rddl2 inst_lang_extension_examples
 		./run rddl.viz.RDDL2Graph files/rddl2/examples/multiagent_mars_rover.rddl2 inst_multiagent_mars_rover
 		./run rddl.viz.RDDL2Graph files/rddl2/examples/traffic_control_ctm.rddl2 inst_traffic_control_ctm
