@@ -197,7 +197,7 @@ public class Simulator {
 		  	    ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
 						// System.out.println("\n- " + var_type + ": " + p);
 		  	    for (ArrayList<LCONST> gfluent : gfluents){
-							// System.out.println("type:\t"+s.getPVariableAssign(p, gfluent).getClass());
+							// System.out.println(gfluent+", type:\t"+s.getPVariableAssign(p, gfluent).getClass());
 							if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
 								sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
 								// System.out.println(s.getPVariableAssign(p, gfluent));
