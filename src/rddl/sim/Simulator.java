@@ -195,16 +195,16 @@ public class Simulator {
 		  	try {
 		  	    // Go through all term groundings for variable p
 		  	    ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
-						// System.out.println("\n- " + var_type + ": " + p);
+						System.out.println("\n- " + var_type + ": " + p);
 		  	    for (ArrayList<LCONST> gfluent : gfluents){
-							// System.out.println(gfluent+", type:\t"+s.getPVariableAssign(p, gfluent).getClass());
+							System.out.print(gfluent+": ");
 							if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
 								sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
-								// System.out.println(s.getPVariableAssign(p, gfluent));
+								System.out.println(s.getPVariableAssign(p, gfluent));
 							} else {
 								sb.append(s.getPVariableAssign(p, gfluent));
 								sb.append("\t");
-								// System.out.println(s.getPVariableAssign(p, gfluent));
+								System.out.println(s.getPVariableAssign(p, gfluent));
 							}
 						}
 						if (s._hmPVariables.get(obs) != null) {
@@ -215,7 +215,7 @@ public class Simulator {
 								} else {
 									sb.append(s.getPVariableAssign(obs, gfluent));
 									sb.append("\t");
-									// System.out.println(s.getPVariableAssign(obs, gfluent));
+									System.out.println(s.getPVariableAssign(obs, gfluent));
 								}
 							}
 	  	    	}
