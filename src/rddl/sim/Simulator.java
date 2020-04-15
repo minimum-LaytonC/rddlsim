@@ -176,6 +176,7 @@ public class Simulator {
 
 	public String getStateDescription(State s) {
   	StringBuilder sb = new StringBuilder();
+		StringBuilder actionSB = new StringBuilder();
 
   	PVAR_NAME state = new PVAR_NAME("running");
   	PVAR_NAME obs   = new PVAR_NAME("running-obs");
@@ -198,14 +199,26 @@ public class Simulator {
 		  	    ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
 						// System.out.println("\n- " + var_type + ": " + p);
 		  	    for (ArrayList<LCONST> gfluent : gfluents){
-							System.out.print(gfluent+": ");
-							if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
-								sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
-								// System.out.println(s.getPVariableAssign(p, gfluent));
+							if (!this.pomdp && var_type.equals("action")){
+								// System.out.println("moved to after state");
+								if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
+									actionSB.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								} else {
+									actionSB.append(s.getPVariableAssign(p, gfluent));
+									actionSB.append("\t");
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								}
 							} else {
-								sb.append(s.getPVariableAssign(p, gfluent));
-								sb.append("\t");
-								// System.out.println(s.getPVariableAssign(p, gfluent));
+								// System.out.println(gfluent+", type:\t"+s.getPVariableAssign(p, gfluent).getClass());
+								if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
+									sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								} else {
+									sb.append(s.getPVariableAssign(p, gfluent));
+									sb.append("\t");
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								}
 							}
 						}
 						if (s._hmPVariables.get(obs) != null) {
@@ -225,7 +238,12 @@ public class Simulator {
 		  	}
 			}
 		}
-		return sb.toString();
+		// System.out.println(actionSB.toString());
+		if (this.pomdp){
+			return sb.toString();
+		} else {
+			return sb.toString()+actionSB.toString();
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
