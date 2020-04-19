@@ -97,7 +97,7 @@ public class Simulator {
 
 			// Get action from policy
 			// (if POMDP and first state, no observations available yet so a null is passed)
-			State state_info = ((_state._alObservNames.size() > 0) && t == 0) ? null : _state;
+			State state_info = _state; //((_state._alObservNames.size() > 0) && t == 0) ? null : _state;
 			ArrayList<PVAR_INST_DEF> action_list = p.getActions(state_info);
 
 			// Check action preconditions / state-action constraints (latter now deprecated)
@@ -117,8 +117,8 @@ public class Simulator {
 				states.add(getStateDescription(_state) + reward);
 			}
 			// Display state/observations that the agent sees
-			v.display(_state, t);
-			System.out.println(states.get(t));
+			// v.display(_state, t);
+			// System.out.println(states.get(t));
 
 			accum_reward += cur_discount * reward;
 			cur_discount *= _i._dDiscount;
