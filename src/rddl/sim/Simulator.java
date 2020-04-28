@@ -33,7 +33,7 @@ public class Simulator {
 	public StateViz   _v;
 	public RandomDataGenerator _rand;
 
-
+	public static int all_reward = 0;
 	public boolean started = false;
 	public FileWriter fw;
 	public StringBuilder sb;
@@ -111,6 +111,7 @@ public class Simulator {
 			double reward = RDDL.ConvertToNumber(
 					_state._reward.sample(new HashMap<LVAR,LCONST>(), _state, _rand)).doubleValue();
 			rewards.add(reward);
+			all_reward += reward;
 			if (t < _i._nHorizon-1){
 				states.add(getStateDescription(_state) + reward + "\t");
 			} else {
@@ -130,7 +131,7 @@ public class Simulator {
 			if (_i._termCond != null && _state.checkTerminationCondition(_i._termCond))
 				break;
 		}
-
+		//System.out.println("\n\naccum_reward:\t"+(accum_reward));
 		// Signal start of new session-independent round
 		//p.roundEnd(accum_reward);
 
@@ -284,5 +285,8 @@ public class Simulator {
 			Result r = sim.run(pol, viz, rand_seed_sim, i);
 		}
 		sim.fw.close();
+		// System.out.println("\n\nall_reward:\t"+(all_reward));
+		// System.out.println("\n\nnum_trails:\t"+(trials));
+		System.out.println("\n\navg_reward:\t"+(all_reward/trials));
 	}
 }
