@@ -41,6 +41,6 @@ instance sysadmin_inst_pomdp__1 {
 	};
 
 	max-nondef-actions = 1;
-	horizon  = 40;
+	horizon  = 10;
 	discount = 1.0;
 }

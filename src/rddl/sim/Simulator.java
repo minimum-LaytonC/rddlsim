@@ -200,7 +200,7 @@ public class Simulator {
 		  	    ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
 						// System.out.println("\n- " + var_type + ": " + p);
 		  	    for (ArrayList<LCONST> gfluent : gfluents){
-							if (!this.pomdp && var_type.equals("action")){
+							if (var_type.equals("action")){
 								// System.out.println("moved to after state");
 								if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
 									actionSB.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
@@ -240,11 +240,11 @@ public class Simulator {
 			}
 		}
 		// System.out.println(actionSB.toString());
-		if (this.pomdp){
-			return sb.toString();
-		} else {
+		// if (this.pomdp){
+		// 	return sb.toString();
+		// } else {
 			return sb.toString()+actionSB.toString();
-		}
+		// }
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
