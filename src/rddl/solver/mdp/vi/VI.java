@@ -37,6 +37,11 @@ import rddl.translate.RDDL2Format;
 import util.CString;
 import util.Pair;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.File;
+
+
 public class VI extends Policy {
 
 	public static int SOLVER_TIME_LIMIT = 40; // Solver time limit (seconds)
@@ -59,6 +64,11 @@ public class VI extends Policy {
 	public ArrayList<CString> _alActionNames;
 	public HashMap<CString, Action> _hmActionName2Action; // Holds transition function
 
+	public boolean started = false;
+	public FileWriter fw;
+	public StringBuilder sb;
+	public int count = 0;
+
 	// Just use the default random seed
 	public Random _rand = new Random();
 
@@ -72,11 +82,82 @@ public class VI extends Policy {
 	///////////////////////////////////////////////////////////////////////////
 	//                      Main Action Selection Method
 	///////////////////////////////////////////////////////////////////////////
+	public String getStateDescription(State s) {
+		StringBuilder sb = new StringBuilder();
+		StringBuilder actionSB = new StringBuilder();
+
+		PVAR_NAME state = new PVAR_NAME("running");
+		PVAR_NAME obs   = new PVAR_NAME("running-obs");
+
+		for (Map.Entry<String,ArrayList<PVAR_NAME>> e : s._hmTypeMap.entrySet()) {
+
+			// Go through all variable names p for a variable type
+			for (PVAR_NAME p : e.getValue()) {
+
+				// Show interms only if they are derived
+				PVARIABLE_DEF def = s._hmPVariables.get(p._pvarUnprimed);
+				if (def instanceof PVARIABLE_INTERM_DEF
+					&& !((PVARIABLE_INTERM_DEF)def)._bDerived)
+					continue;
+				String var_type = e.getKey();
+				var_type = var_type.replace("interm", "derived");
+				if (var_type.equals("nonfluent") || var_type.equals("action")) continue;
+				try {
+						// Go through all term groundings for variable p
+						ArrayList<ArrayList<LCONST>> gfluents = s.generateAtoms(p);
+						// System.out.println("\n- " + var_type + ": " + p);
+						for (ArrayList<LCONST> gfluent : gfluents){
+							if (var_type.equals("action")){
+								// System.out.println("moved to after state");
+								if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
+									actionSB.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								} else {
+									actionSB.append(s.getPVariableAssign(p, gfluent));
+									actionSB.append("\t");
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								}
+							} else {
+								// System.out.println(gfluent+", type:\t"+s.getPVariableAssign(p, gfluent).getClass());
+								if ((s.getPVariableAssign(p, gfluent) instanceof Boolean)){
+									sb.append(((Boolean)s.getPVariableAssign(p, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								} else {
+									sb.append(s.getPVariableAssign(p, gfluent));
+									sb.append("\t");
+									// System.out.println(s.getPVariableAssign(p, gfluent));
+								}
+							}
+						}
+						if (s._hmPVariables.get(obs) != null) {
+							for (ArrayList<LCONST> gfluent : gfluents){
+								if ((s.getPVariableAssign(obs, gfluent) instanceof Boolean)){
+									sb.append(((Boolean)s.getPVariableAssign(obs, gfluent) ? "1\t" : "0\t"));
+									// System.out.println(s.getPVariableAssign(obs, gfluent));
+								} else {
+									sb.append(s.getPVariableAssign(obs, gfluent));
+									sb.append("\t");
+									// System.out.println(s.getPVariableAssign(obs, gfluent));
+								}
+							}
+						}
+				} catch (EvalException ex) {
+						System.out.println("- could not retrieve assignment for " + p + "/" + obs + "\n");
+				}
+			}
+		}
+		// System.out.println(actionSB.toString());
+		// if (this.pomdp){
+		// 	return sb.toString();
+		// } else {
+			return sb.toString()+actionSB.toString();
+		// }
+	}
 
 	public ArrayList<PVAR_INST_DEF> getActions(State s) throws EvalException {
 
 		//System.out.println("FULL STATE:\n\n" + SPerseusSPUDDPolicy.getStateDescription(s));
-
+		String outstr;
 		if (s == null) {
 			// This should only occur on the **first step** of a POMDP trial
 			System.err.println("ERROR: NO STATE/OBS: MDP must have state.");
@@ -88,7 +169,7 @@ public class VI extends Policy {
 			CString.Convert2CString(SPerseusSPUDDPolicy.getTrueFluents(s, "states"));
 		if (SHOW_STATE) {
 			System.out.println("\n==============================================");
-			System.out.println("\nTrue state variables:");
+			System.out.println("\nState description:");
 			for (CString prop_var : true_vars)
 				System.out.println(" - " + prop_var);
 		}
@@ -96,6 +177,9 @@ public class VI extends Policy {
 		// Get a map of { legal action names -> RDDL action definition }
 		Map<String,ArrayList<PVAR_INST_DEF>> action_map =
 			ActionGenerator.getLegalBoolActionMap(s);
+
+		int act_index = 0;
+		int action_taken_index = 0;
 
 		// Use the precomputed q-functions (cached when the value function
 		// was computed) to determine the best action for this state
@@ -113,10 +197,8 @@ public class VI extends Policy {
 
 			double best_action_value = -Double.MAX_VALUE;
 			ArrayList add_state_assign = DDUtils.ConvertTrueVars2DDAssign(_context, true_vars, _alStateVars);
-
 			// Find best action by evaluating each Q-function
 			for (Map.Entry<CString, Integer> me : _hmAct2Regr.entrySet()) {
-
 				if (!action_map.keySet().contains(me.getKey()._string))
 					continue; // Action is not legal in this state
 
@@ -128,17 +210,69 @@ public class VI extends Policy {
 				if (action_taken == null || action_value > best_action_value) {
 					action_taken = me.getKey()._string;
 					best_action_value = action_value;
+					if (action_taken.equals("noop")){
+						action_taken_index = -1;
+					} else {
+						action_taken_index = act_index;
+					}
 				}
+				if(!me.getKey()._string.equals("noop"))  act_index++;
 			}
 
 			if (SHOW_ACTION_TAKEN)
 				System.out.println("\n--> Best action taken [" + best_action_value + "]: "
 						+ action_taken);
 		}
-
+		String actions = "";
+		for(int i = 0; i < act_index; i++){
+			if(i == action_taken_index){
+				actions += "1";
+			} else{
+				actions += "0";
+			}
+			if(i < act_index-1){
+				actions += "\t";
+			}
+		}
+		String state_str = getStateDescription(s);
+		state_str += actions;
+		if (SHOW_ACTION_TAKEN) {
+			System.out.println("actions:\t" + actions);
+			System.out.println(state_str);
+		}
+		write_data(state_str);
+		this.count++;
 		return action_map.get(action_taken);
 	}
+	public void write_data(String state) {
+		String fileName = "VI_policy_data.tsv";
 
+		try {
+		  File outFile = new File(fileName);
+		  if (!outFile.exists()) {
+				outFile.createNewFile();
+				this.sb = new StringBuilder("");
+				this.fw = new FileWriter(fileName, true);
+		  } else if (!this.started) {
+				outFile.delete();
+				outFile.createNewFile();
+				this.sb = new StringBuilder("");
+				this.fw = new FileWriter(fileName, true);
+		  } else {
+				this.sb.append("\n");
+			}
+			this.started = true;
+		  this.sb.append(state);
+			//this.sb.setLength(this.sb.length() - 1);
+			if (this.count%100==0) {
+				System.out.println("count:\t"+this.count);
+				this.fw.write(this.sb.toString());
+				this.sb = new StringBuilder("");
+			}
+		} catch (IOException ioe) {
+		  System.out.println("IOException occurred - " + ioe.getMessage());
+		}
+	}
 	///////////////////////////////////////////////////////////////////////////
 	//                         Round / Session Signals
 	//

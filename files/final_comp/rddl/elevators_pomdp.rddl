@@ -68,6 +68,8 @@ domain elevators_pomdp {
 		// Observations -- only aliased observation is whether person waiting
 		// at a floor, can directly observe those inside elevator; initial state 
 		// is known and elevator movement is deterministic so no need to observe
+		elevator-dir-obs(elevator): { observ-fluent, bool };
+		elevator-at-floor-obs(elevator, floor): { observ-fluent, bool };
 		person-waiting-obs(floor) : { observ-fluent, bool };
 		person-in-elevator-going-up-obs(elevator)   : { observ-fluent, bool };
 		person-in-elevator-going-down-obs(elevator) : { observ-fluent, bool };
@@ -103,6 +105,12 @@ domain elevators_pomdp {
 			else Bernoulli(ARRIVE-PARAM(?f));
   		
   		// Observation -- only a single button, direction not indicated
+		elevator-dir-obs(?e) =
+			KronDelta( elevator-dir-up'(?e) );
+
+		elevator-at-floor-obs(?e, ?f) =
+			KronDelta( elevator-at-floor'(?e, ?f) );
+
   		person-waiting-obs(?f) = 
   			KronDelta( person-waiting-up'(?f) | person-waiting-down'(?f) );
   			
