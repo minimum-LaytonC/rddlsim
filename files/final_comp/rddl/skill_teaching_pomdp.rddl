@@ -89,6 +89,9 @@ domain skill_teaching_pomdp {
 		hintedRight(skill): {state-fluent, bool, default = false};
 		hintDelayVar(skill) : {state-fluent, bool, default = false};
 
+		hintedRightObs(skill): {observ-fluent, bool};
+		hintDelayObs(skill): {observ-fluent, bool};
+
 		//actions
 		askProb(skill) : {action-fluent, bool, default = false};
 		giveHint(skill) :  {action-fluent, bool, default = false};
@@ -130,6 +133,12 @@ domain skill_teaching_pomdp {
 
 		hintDelayVar'(?s) = 
 			KronDelta( [forall_{?s2: skill} ~updateTurn(?s2)] ^ giveHint(?s) );
+
+		hintDelayObs(?s) = 
+					KronDelta( hintedRight(?s) );
+
+		hintedRightObs(?s) = 
+					KronDelta( hintedRight'(?s) );
 
 		//without intermediate nodes, we need to keep ``on'' all proficiency levels that have been attained		
 		//can't go down from proficiencyMed without intermediate nodes or a time delay I think

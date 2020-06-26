@@ -10,6 +10,7 @@ package rddl.sim;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import rddl.*;
 import rddl.viz.*;
@@ -120,6 +121,12 @@ public class Simulator {
 			// Display state/observations that the agent sees
 			// v.display(_state, t);
 			// System.out.println(states.get(t));
+			// try {
+			// 	TimeUnit.SECONDS.sleep(1);
+			// } catch (InterruptedException e) {
+			// 	System.err.format("IOException: %s%n", e);
+			// }
+			if (t == 0) System.out.println("State at t=0:\t"+states.get(t));
 
 			accum_reward += cur_discount * reward;
 			cur_discount *= _i._dDiscount;
@@ -287,6 +294,6 @@ public class Simulator {
 		sim.fw.close();
 		// System.out.println("\n\nall_reward:\t"+(all_reward));
 		// System.out.println("\n\nnum_trails:\t"+(trials));
-		System.out.println("\n\navg_reward:\t"+(all_reward/trials));
+		System.out.println("\n\navg_reward:\t"+((float)all_reward/(float)trials));
 	}
 }
