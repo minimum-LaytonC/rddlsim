@@ -126,7 +126,7 @@ public class Simulator {
 			// } catch (InterruptedException e) {
 			// 	System.err.format("IOException: %s%n", e);
 			// }
-			if (t == 0) System.out.println("State at t=0:\t"+states.get(t));
+			//if (t == 0) System.out.println("State at t=0:\t"+states.get(t));
 
 			accum_reward += cur_discount * reward;
 			cur_discount *= _i._dDiscount;
