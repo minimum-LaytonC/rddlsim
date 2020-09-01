@@ -250,7 +250,7 @@ public class Simulator {
 		// if (this.pomdp){
 		// 	return sb.toString();
 		// } else {
-			return sb.toString()+actionSB.toString();
+			return actionSB.toString()+sb.toString();
 		// }
 	}
 
