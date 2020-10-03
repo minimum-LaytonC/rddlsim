@@ -104,22 +104,6 @@ domain elevators_pomdp {
 			then KronDelta(true) 
 			else Bernoulli(ARRIVE-PARAM(?f));
   		
-  		// Observation -- only a single button, direction not indicated
-		elevator-dir-obs(?e) =
-			KronDelta( elevator-dir-up'(?e) );
-
-		elevator-at-floor-obs(?e, ?f) =
-			KronDelta( elevator-at-floor'(?e, ?f) );
-
-  		person-waiting-obs(?f) = 
-  			KronDelta( person-waiting-up'(?f) | person-waiting-down'(?f) );
-  			
-  		person-in-elevator-going-up-obs(?e) = 
-  			KronDelta( person-in-elevator-going-up'(?e) );
-  			
-		person-in-elevator-going-down-obs(?e) = 
-			KronDelta( person-in-elevator-going-down'(?e) );
-  		
   		// A person is in the elevator going in a direction if someone gets on 
   		// in that direction or someone was already on in that direction and does
   		// not get off.
@@ -197,6 +181,22 @@ domain elevators_pomdp {
 			else
 				// If here, state persists
 				KronDelta( false ); 
+
+		// Observation -- only a single button, direction not indicated
+		elevator-dir-obs(?e) =
+			KronDelta( elevator-dir-up'(?e) );
+
+		elevator-at-floor-obs(?e, ?f) =
+			KronDelta( elevator-at-floor'(?e, ?f) );
+
+  		person-waiting-obs(?f) = 
+  			KronDelta( person-waiting-up'(?f) | person-waiting-down'(?f) );
+  			
+  		person-in-elevator-going-up-obs(?e) = 
+  			KronDelta( person-in-elevator-going-up'(?e) );
+  			
+		person-in-elevator-going-down-obs(?e) = 
+			KronDelta( person-in-elevator-going-down'(?e) );
 	};
   
   	// Reward is a sum of waiting penalties for those in elevators and at floor

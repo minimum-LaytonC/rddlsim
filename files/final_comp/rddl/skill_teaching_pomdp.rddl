@@ -135,7 +135,7 @@ domain skill_teaching_pomdp {
 			KronDelta( [forall_{?s2: skill} ~updateTurn(?s2)] ^ giveHint(?s) );
 
 		hintDelayObs(?s) = 
-					KronDelta( hintedRight(?s) );
+					KronDelta( hintDelayVar'(?s) );
 
 		hintedRightObs(?s) = 
 					KronDelta( hintedRight'(?s) );
